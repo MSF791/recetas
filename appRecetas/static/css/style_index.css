@@ -1,0 +1,16 @@
+.segundo{
+    background-color: #20d36d;
+}
+.separador{
+    border: 5px dashed #007c0a;
+}
+
+.icon-link{
+    text-decoration: none;
+    color: #007c0a;
+    border-bottom: 1px inset #007c0a;
+}
+
+.tercero{
+    background: linear-gradient(to right, #20d36d, #007c0a);
+}
