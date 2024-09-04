@@ -8,16 +8,19 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style>
     .container_form{
-      background-color: rgb(221, 221, 221);
+      background-color: none;
       margin-left: 25%;
       margin-top: 5%;
       width: 50vw;
-      height: 50vh;
+      height: 60vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 8px;
       box-shadow: 2px 5px 8px #000;
+    }
+    .container_form form input{
+      background-color: #ececec;
     }
     h3{
       display: flex;
@@ -25,96 +28,140 @@
       align-items: center;
       margin-top: 10px;
     }
+    .messages{
+      width: 800px;
+      display: flex;
+      justify-content: end;
+      align-items: end;
+    }
   </style>
 
 </head>
 <body>
   {% include 'navbars/navbar.html' %}
   <h3>Registrarse</h3>
+  {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} {% if message.tags == 'error' %}alert-danger{% endif %}" role="alert" id="miAlerta">
+                <strong>{{ message }}</strong>
+            </div>
+        {% endfor %}
+    </ul>
+  {% endif %}
   <div class="container_form">
-  <form class="row g-3 needs-validation" novalidate>
-    <div class="col-md-4">
-      <label for="validationCustom01" class="form-label">Nombres</label>
-      <input type="text" class="form-control" id="validationCustom01" value="" required>
-      <div class="valid-feedback">
-        Valido!
-      </div>
-      <div class="invalid-feedback">
-        Por Favor Digite Un Nombre Valido.
-      </div>
-    </div>
-    <div class="col-md-4">
-      <label for="validationCustom02" class="form-label">Apellidos</label>
-      <input type="text" class="form-control" id="validationCustom02" value="" required>
-      <div class="valid-feedback">
-        Valido!
-      </div>
-      <div class="invalid-feedback">
-        Por Favor Digite Un Apellido Valido.
-      </div>
-    </div>
-    <div class="col-md-4">
-      <label for="validationCustomUsername" class="form-label">Correo</label>
-      <div class="input-group has-validation">
-        <span class="input-group-text" id="inputGroupPrepend">@</span>
-        <input type="text" class="form-control" id="validationCustomUsername" aria-describedby="inputGroupPrepend" required>
+    <form class="row g-3 needs-validation" novalidate action="{% url 'registro_usuario' %}" method="post" autocomplete="off">
+      {% csrf_token %}
+      <div class="col-md-4">
+        <label for="validationCustom01" class="form-label">Nombre</label>
+        <input type="text" class="form-control" id="validationCustom01" name="nombres" required>
         <div class="valid-feedback">
-          Valido!
+          ¡Válido!
         </div>
         <div class="invalid-feedback">
-          Por Favor Digite Un Correo Valido.
+          Por favor, digite un nombre válido.
         </div>
       </div>
-    </div>
-    <div class="col-md-8">
-      <label for="validationCustom03" class="form-label">Contraseña</label>
-      <input type="password" class="form-control" id="validationCustom03" required>
-      <div class="valid-feedback">
-        Valido!
-      </div>
-      <div class="invalid-feedback">
-        Por favor Escriba Una Contraseña Valida.
-      </div>
-    </div>
-    <div class="col-12">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-        <label class="form-check-label" for="invalidCheck">
-          Aceptar Terminos Y Condiciones
-        </label>
+    
+      <div class="col-md-4">
+        <label for="validationCustom02" class="form-label">Apellido</label>
+        <input type="text" class="form-control" id="validationCustom02" name="apellidos" required>
+        <div class="valid-feedback">
+          ¡Válido!
+        </div>
         <div class="invalid-feedback">
-          Debes Aceptar Los Terminos Y Condiciones.
+          Por favor, digite un apellido válido.
         </div>
       </div>
-    </div>
-    <div class="col-12">
-      <button class="btn btn-success" type="submit">Registrarse</button>
-    </div>
-  </form>
-</div>
+    
+      <div class="col-md-4">
+        <label for="validationCustomUsername" class="form-label">Correo</label>
+        <div class="input-group has-validation">
+          <span class="input-group-text" id="inputGroupPrepend">@</span>
+          <input type="text" class="form-control" id="validationCustomUsername" aria-describedby="inputGroupPrepend" name="email" required>
 
-
-  <script>(() => {
-    'use strict'
-  
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    const forms = document.querySelectorAll('.needs-validation')
-  
-    // Loop over them and prevent submission
-    Array.from(forms).forEach(form => {
-      form.addEventListener('submit', event => {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()
-        }
-  
-        form.classList.add('was-validated')
-      }, false)
-    })
-  })()</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+          <div class="invalid-feedback">
+            Por favor, digite un correo válido.
+          </div>
+        </div>
+      </div>
+    
+      <div class="col-md-8">
+        <label for="validationCustom03" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="validationCustom03" name="pass" required>
+        <div class="invalid-feedback">
+          Por favor, escribe una contraseña válida.
+        </div>
+      </div>
+    
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+          <label class="form-check-label" for="invalidCheck">
+            Aceptar términos y condiciones
+          </label>
+          <div class="invalid-feedback">
+            Debes aceptar los términos y condiciones.
+          </div>
+        </div>
+      </div>
+    
+      <div class="col-12">
+        <button class="btn btn-success" type="submit">Registrarse</button>
+      </div>
+    </form>
+    
+    <script>
+      (() => {
+        'use strict'
+    
+        const emailInput = document.getElementById('validationCustomUsername');
+        const passwordInput = document.getElementById('validationCustom03');
+    
+        // Validación en tiempo real del campo de correo electrónico
+        emailInput.addEventListener('input', function () {
+          const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          const isValid = emailPattern.test(emailInput.value);
+    
+          if (isValid) {
+            emailInput.classList.remove('is-invalid');
+            emailInput.classList.add('is-valid');
+          } else {
+            emailInput.classList.remove('is-valid');
+            emailInput.classList.add('is-invalid');
+          }
+        });
+    
+        // Validación en tiempo real del campo de contraseña
+        passwordInput.addEventListener('input', function () {
+          const passwordPattern = /^(?=.*[A-Z])(?=.*\d{3,})(?=.*[\W_]).{8,}$/;
+          const isValid = passwordPattern.test(passwordInput.value);
+    
+          if (isValid) {
+            passwordInput.classList.remove('is-invalid');
+            passwordInput.classList.add('is-valid');
+          } else {
+            passwordInput.classList.remove('is-valid');
+            passwordInput.classList.add('is-invalid');
+          }
+        });
+    
+        // Validación general del formulario
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+          form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+    
+            form.classList.add('was-validated');
+          }, false);
+        });
+      })();
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
   </body>
 </html>
