@@ -56,11 +56,11 @@
           <h1 class="display-3 fw-bold">¿Quieres Publicar Tus Recetas?</h1>
           <h3 class="fw-normal text-muted mb-3">¿Quieres Mirar Recetas Nuevas?</h3>
           <div class="d-flex gap-3 justify-content-center lead fw-normal">
-            <a class="icon-link" href="#">
+            <a class="icon-link" href="{% url 'crear_receta' %}">
               Publica Tus Recetas Aqui
               <svg class="bi"><use xlink:href="#chevron-right"/></svg>
             </a>
-            <a class="icon-link" href="#">
+            <a class="icon-link" href="{% url 'all_recipes' %}">
               Mira Recetas Aqui
               <svg class="bi"><use xlink:href="#chevron-right"/></svg>
             </a>

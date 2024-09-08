@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recetas</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .carta{
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbars/navbar.html' %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Mira Nuevas Recetas Aqui</h1>
+
+        <!-- Seccion De Filtros -->
+        <form class="mb-4" method="GET" action="{% url 'all_recipes' %}" autocomplete="off">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Buscar receta...">
+            </div>
+
+            <!-- Cocinas -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label for="cocina" class="form-label">Cocina</label>
+                    <select id="cocina" class="form-select" name="cuisine">
+                        <option value="">Seleccionar cocina</option>
+                        {% for cocina in cocinas %}
+                        <option value="{{ cocina.name }}">{{ cocina.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Tiempo De Preparacion -->
+                <div class="col-md-4">
+                    <label for="preparacion" class="form-label">Tiempo de preparación</label>
+                    <select id="preparacion" class="form-select" name="preparation_time">
+                        <option value="">Seleccionar tiempo</option>
+                        <option value="menos30">Menos de 30 minutos</option>
+                        <option value="30-60">30-60 minutos</option>
+                        <option value="mas60">Más de 60 minutos</option>
+                    </select>
+                </div>
+
+                <!-- Fecha Publicacion -->
+                <div class="col-md-4">
+                    <label for="fecha" class="form-label">Fecha de publicación</label>
+                    <select id="fecha" class="form-select" name="publication_date">
+                        <option value="">Seleccionar fecha</option>
+                        <option value="ultimo_mes">Último mes</option>
+                        <option value="ultimo_anio">Último año</option>
+                        <option value="anteriores">Anteriores</option>
+                    </select>
+                </div>
+                <div class="d-grid gap-2 mt-4 mb-4">
+                    <button class="btn btn-outline-success" type="submit">Buscar</button>
+                </div>
+        </form>
+    </div>
+
+        <!-- Lista de recetas -->
+        <div class="row mt-4">
+            {% for receta in recetas %}
+                <div class="carta col-md-4 mb-4">
+                    <div class="card mb-4">
+                        {% if receta.image %}
+                        <img src="{{ receta.image.url }}" class="card-img-top" alt="Imagen de {{ receta.title }}" width="414px" height="276px">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-center">{{ receta.title }}</h5>
+
+                            <!-- Puntuación -->
+                            <!-- (Aquí puedes agregar el código para mostrar la puntuación) -->
+
+                            <!-- Tiempo de preparación -->
+                            <p class="card-text text-center"><strong>Tiempo de Preparación:</strong> {{ receta.preparation_time }} minutos</p>
+
+                            <!-- Cocina -->
+                            <p class="card-text text-center"><strong>Cocina:</strong> {{ receta.cuisine.name }}</p>
+
+                            <!-- Botón de ver detalles -->
+                            <div class="mt-auto text-center">
+                                <a href="{% url 'recipe_detail' receta.id %}" class="btn btn-info">Ver Detalles</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

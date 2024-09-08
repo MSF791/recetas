@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ recipe.title }} - Detalles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .recipe-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: #eaeaea;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .opciones{
+            margin-bottom: 20px;
+        }
+        .recipe-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .recipe-image {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .recipe-details {
+            margin-bottom: 20px;
+        }
+        .recipe-details h4 {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .comment-section {
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #eaeaea;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .comment-list {
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #eaeaea;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        /* Añadir separación entre la puntuación y los comentarios */
+        .rating-section {
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            background-color: #eaeaea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .seguir{
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbars/navbar.html' %}
+
+    <div class="container">
+        <div class="row">
+            <!-- Detalles de la receta -->
+            <div class="col-md-7">
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} {% if message.tags == 'error' %}alert-danger{% endif %}" role="alert" id="miAlerta">
+                                <strong>{{ message }}</strong>
+                            </div>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <div class="recipe-container">
+                    <h1 class="recipe-title">{{ recipe.title }}</h1>
+
+                    {% if recipe.image %}
+                    <div class="recipe-image">
+                        <img src="{{ recipe.image.url }}" alt="Imagen de {{ recipe.title }}" class="img-fluid" width="500px" height="500px">
+                    </div>
+                    {% endif %}
+
+                     <!-- Mostrar la puntuación promedio -->
+                    <div class="rating-section">
+                        <h4>Puntuación promedio:</h4>
+                        <p>{{ average_rating|default:"No hay puntuaciones aún" }}</p>
+                    </div>
+
+                    <div class="opciones">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            Agrega A Tu Colección
+                        </button>
+                        {% if request.user != recipe_owner %}
+                            <form class="mt-4" method="POST" action="{% url 'follow_user' recipe_owner.id recipe.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-success seguir">Seguir</button>
+                            </form>
+                        {% else %}
+                                <button type="submit" class="btn btn-outline-success" disabled>No Puedes Seguirte A Ti Mismo</button>
+                        {% endif %}
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Descripción:</h4>
+                        <p>{{ recipe.description }}</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Ingredientes:</h4>
+                        <p>{{ recipe.ingredients }}</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Instrucciones:</h4>
+                        <p>{{ recipe.instructions }}</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Tiempo de preparación:</h4>
+                        <p>{{ recipe.preparation_time }} minutos</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Cocina:</h4>
+                        <p>{{ recipe.cuisine.name }}</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Publicado por:</h4>
+                        <p>{{ recipe.author.first_name }}  {{ recipe.author.last_name }}</p>
+                    </div>
+
+                    <div class="recipe-details">
+                        <h4>Fecha de creación:</h4>
+                        <p>{{ recipe.created_at|date:"d M Y" }}</p>
+                    </div>
+                    {% if request.user == recipe.author and request.resolver_match.view_name == 'recipe_detail' %}
+                        <a href="{% url 'ver_receta_propia' %}" class="btn btn-outline-info">Volver a la lista</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Puntuación y Comentarios -->
+            <div class="col-md-5">
+                    <!-- Formulario de Puntuación -->
+                    <div class="rating-section">
+                        <h4>Califica esta receta:</h4>
+                        <form method="POST" action="{% url 'rate_recipe' recipe.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="rating" class="form-label">Puntuación (1-5):</label>
+                                <input type="number" id="rating" name="rating" class="form-control" min="1" max="5" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar Puntuación</button>
+                        </form>
+                    </div>
+
+                    <!-- Formulario de Comentarios -->
+                    <div class="comment-section">
+                        <h4>Deja un comentario:</h4>
+                        <form method="POST" action="{% url 'add_comment' recipe.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea id="content" name="content" class="form-control" rows="3" placeholder="Escribe tu comentario aquí..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar Comentario</button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Comentarios -->
+                    <div class="comment-list">
+                        <h4>Comentarios:</h4>
+                        {% for comment in recipe.comments.all %}
+                        <div class="mb-2">
+                            <strong>{{ comment.user.first_name }} {{comment.user.last_name}}</strong> <small class="text-muted">{{ comment.created_at|date:"d M Y H:i" }}</small>
+                            <p>{{ comment.content }}</p>
+                        </div>
+                        {% empty %}
+                        <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                        {% endfor %}
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Tus Colecciones</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_recipe_to_collections' recipe.id %}">
+                    {% csrf_token %}
+                {% for coleccion in colecciones %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="collections" value="{{ coleccion.id }}" id="coleccion{{coleccion.id}}" required>
+                    <label class="form-check-label" for="flexCheckDefault">
+                        {{ coleccion.name }}
+                    </label>
+                  </div>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+                </form>
+        </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
