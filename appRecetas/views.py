@@ -3,7 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Avg
 from django.utils.timezone import now
-from datetime import timedelta
+from django.utils import timezone
+from datetime import timedelta, datetime
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from .forms import *
@@ -66,7 +67,7 @@ def cerrar_sesion(request):
 
 def create_recipe(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     if request.method == 'POST':
         form = RecipeForm(request.POST, request.FILES)
@@ -82,14 +83,14 @@ def create_recipe(request):
 
 def ver_recetas_propias(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     recipes = Recipe.objects.filter(author=request.user)
     return render(request, 'recetas/ver_recetas_propias.html', {'recetas':recipes})
 
 def recipe_detail(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     ratings = RecipeRating.objects.filter(recipe=recipe)
@@ -111,7 +112,7 @@ def recipe_detail(request, recipe_id):
 
 def edit_recipe(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     recipe = get_object_or_404(Recipe, pk=recipe_id)
 
@@ -128,7 +129,7 @@ def edit_recipe(request, recipe_id):
 
 def delete_recipe(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     recipe = get_object_or_404(Recipe, pk=recipe_id)
 
@@ -158,7 +159,7 @@ def rate_recipe(request, recipe_id):
 
 def add_comment(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     recipe = get_object_or_404(Recipe, id=recipe_id)
     if request.method == "POST":
@@ -215,7 +216,7 @@ def all_recipes(request):
 
 def create_collection(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     if request.method == 'POST':
         form = CollectionForm(request.POST)
@@ -232,7 +233,7 @@ def create_collection(request):
 
 def add_recipe_to_collections(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     if request.method == 'POST':
         collection_ids = request.POST.getlist('collections')
@@ -253,14 +254,14 @@ def add_recipe_to_collections(request, recipe_id):
     
 def user_collections(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     collections = Collection.objects.filter(user=request.user)
     return render(request, 'colecciones/lista_colecciones.html', {'collections': collections})
 
 def collection_detail(request, collection_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     collection = get_object_or_404(Collection, id=collection_id, user=request.user)
     recipes = collection.recipes.all()
@@ -268,7 +269,7 @@ def collection_detail(request, collection_id):
 
 def edit_profile(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
 
     if request.method == 'POST':
@@ -298,21 +299,21 @@ def edit_profile(request):
 
 def following_list(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     following = Follow.objects.filter(follower=request.user)
     return render(request, 'perfil/siguiendo_list.html', {'following': following})
 
 def followers_list(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     followers = Follow.objects.filter(following=request.user)
     return render(request, 'perfil/seguidos_list.html', {'followers': followers})
 
 def follow_user(request, user_id, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
 
     user_to_follow = get_object_or_404(User, id=user_id)
@@ -332,7 +333,7 @@ def follow_user(request, user_id, recipe_id):
 
 def unfollow_user(request, user_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para editar tu perfil.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
     follow = get_object_or_404(Follow, follower=request.user, following_id=user_id)
     follow.delete()
@@ -341,44 +342,57 @@ def unfollow_user(request, user_id):
 from django.core.mail import send_mail
 
 def recuperar_contraseña(request):
-    correo_user = request.POST['correo']
-    codigo_aleatorio = random.randint(1000, 9999)
-    enviado = False
-    if enviado == False:
+    if request.method == 'POST':
+        correo_user = request.POST['correo']
+        codigo_aleatorio = random.randint(1000, 9999)
+
+        # Guardar el código generado en la sesión
+        request.session['codigo_aleatorio'] = codigo_aleatorio
+
         send_mail(
             'Recuperar Contraseña',
-            f'No Compartas Esta Codigo Con Nadie. Tu Codigo Es: {codigo_aleatorio}',
+            f'No compartas este código con nadie. Tu código es: {codigo_aleatorio}',
             'codenexus791@gmail.com',
-            [f'{correo_user}'],
+            [correo_user],
             fail_silently=False,
         )
-        enviado = True
-    print(enviado)
-    contexto = {
-        'correo_usuario':correo_user,
-        'codigo':codigo_aleatorio,
-    }
-    return render(request, 'recuperar_contraseña/validacion_codigo.html', contexto)
+
+        contexto = {
+            'correo_usuario': correo_user,
+            'mostrar_reenviar': False,  # No mostrar botón de reenviar inicialmente
+            'deshabilitar_inputs': False  # Habilitar inputs inicialmente
+        }
+        return render(request, 'recuperar_contraseña/validacion_codigo.html', contexto)
+
+    return render(request, 'recuperar_contraseña/validacion_codigo.html')
+
 
 def validar_codigo(request):
-    correo = request.POST.get('correo', '')
-    codigo_generado = request.POST['codigo_generado']
-    codigo1 = request.POST['codigo1']
-    codigo2 = request.POST['codigo2']
-    codigo3 = request.POST['codigo3']
-    codigo4 = request.POST['codigo4']
-    codigo_unido = codigo1 + codigo2 + codigo3 + codigo4
-    intentos = 3
-    contexto = {
-        'correo':correo
-    }
+    if request.method == 'POST':
+        codigo_ingresado = ''.join([
+            request.POST['codigo1'],
+            request.POST['codigo2'],
+            request.POST['codigo3'],
+            request.POST['codigo4']
+        ])
+        codigo_aleatorio = str(request.session.get('codigo_aleatorio'))
+        correo_user = request.POST['correo']
 
-    if codigo_unido == codigo_generado:
-        return render(request, 'recuperar_contraseña/formulario_recuperacion.html', contexto)
-    else:
-        messages.error(request, 'El Codigo Que Ha Introducido No Es El Correcto, Por Favor Vuelvalo A Intentar, le quedan')
-        intentos -= 1
-        return redirect('login')
+        if codigo_ingresado == codigo_aleatorio:
+            contexto = {
+                'correo':correo_user
+            }
+            return render(request, 'recuperar_contraseña/formulario_recuperacion.html', contexto)
+        else:
+            # Código incorrecto, mostrar el botón de reenviar y deshabilitar inputs
+            contexto = {
+                'correo_usuario': correo_user,
+                'mostrar_reenviar': True,
+                'deshabilitar_inputs': True
+            }
+            return render(request, 'recuperar_contraseña/validacion_codigo.html', contexto)
+
+    return redirect('recuperar_contraseña')
     
 def cambio_contraseña(request):
     if request.method == 'POST':
