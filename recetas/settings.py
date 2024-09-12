@@ -150,13 +150,3 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'codenexus791@gmail.com'
 EMAIL_HOST_PASSWORD = 'lyya xsiz epxj anbb'
-
-#configuracion archivos media 
-# Configuración de Cloudinary
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.getenv('CLOUD_NAME'),
-    'API_KEY': os.getenv('API_KEY'),
-    'API_SECRET': os.getenv('API_SECRET'),
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

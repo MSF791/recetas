@@ -10,6 +10,9 @@ from django.contrib.auth.models import User
 from .forms import *
 from .models import *
 import random
+from dotenv import load_dotenv
+import os
+import cloudinary.uploader
 
 def index(request):
     return render(request, 'index.html',)
@@ -67,18 +70,35 @@ def cerrar_sesion(request):
 
 def create_recipe(request):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar esta acción.')
         return redirect('login')
+    
     if request.method == 'POST':
         form = RecipeForm(request.POST, request.FILES)
         if form.is_valid():
             recipe = form.save(commit=False)
             recipe.author = request.user  # Asignar el autor actual
-            recipe.save()
-            messages.success(request, 'Receta Creada Con Exito!')  # Redirigir a la vista de detalles de la receta
-            redirect('crear_receta')
+
+            # Si la imagen está presente, súbela a Cloudinary
+            if 'image' in request.FILES:
+                load_dotenv()
+                cloudinary.config( 
+                    cloud_name = os.getenv('CLOUD_NAME'), 
+                    api_key = os.getenv('API_KEY'), 
+                    api_secret = os.getenv('API_SECRET'), # Click 'View API Keys' above to copy your API secret
+                    secure=True
+                )
+                image = request.FILES['image']
+                upload_result = cloudinary.uploader.upload(image)
+                print(upload_result["secure_url"])
+                recipe.image = upload_result['secure_url']  # Guarda la URL de Cloudinary en el modelo
+
+            recipe.save()  # Guarda la receta con la URL de la imagen
+            messages.success(request, 'Receta creada con éxito!')
+            return redirect('crear_receta')  # Redirigir a los detalles de la receta
     else:
         form = RecipeForm()
+
     return render(request, 'recetas/crear_receta.html', {'form': form})
 
 def ver_recetas_propias(request):
