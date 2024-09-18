@@ -19,6 +19,7 @@ urlpatterns = [
     path('add-recipe-to-collections/<int:recipe_id>', add_recipe_to_collections, name='add_recipe_to_collections'),
     path('colecciones/', user_collections, name='user_collections'),
     path('colecciones/<int:collection_id>/', collection_detail, name='collection_detail'),
+    path('colecciones/eliminar/<int:collection_id>/', collection_delete, name='collection_delete'),
     path('profile', edit_profile, name="edit_profile"),
     path('profile/siguiendo', following_list, name="following_list"),
     path('profile/seguidos', followers_list, name="followers_list"),

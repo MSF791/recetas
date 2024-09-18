@@ -13,6 +13,7 @@ import random
 from dotenv import load_dotenv
 import os
 import cloudinary.uploader
+import cloudinary.api
 
 def index(request):
     return render(request, 'index.html',)
@@ -132,15 +133,63 @@ def recipe_detail(request, recipe_id):
 
 def edit_recipe(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar esta acción.')
         return redirect('login')
+    
+    # Obtener la receta actual
     recipe = get_object_or_404(Recipe, pk=recipe_id)
+    recipe_url = recipe.image  # Obtener la URL actual de la imagen
 
     if request.method == 'POST':
         form = RecipeForm(request.POST, request.FILES, instance=recipe)
+        
         if form.is_valid():
+            print('paso aqui')
+            if 'image' in request.FILES:
+                new_image = request.FILES['image']
+                # Si la nueva imagen es diferente de la actual
+                if new_image != os.path.basename(recipe_url):
+                    load_dotenv()
+
+                    # Configuración de Cloudinary
+                    cloudinary.config(
+                        cloud_name=os.getenv('CLOUD_NAME'),
+                        api_key=os.getenv('API_KEY'),
+                        api_secret=os.getenv('API_SECRET'),
+                        secure=True
+                    )
+                    # Obtener los recursos
+                    result = cloudinary.api.resources()
+
+                    # Buscar la coincidencia con la URL
+                    public_id = None
+                    for resource in result['resources']:
+                        if resource['secure_url'] == recipe_url:
+                            public_id = resource['public_id']
+                            break
+
+                    if public_id:
+                        delete_result = cloudinary.uploader.destroy(public_id)
+                        print(f'estos fueron los resultados:  {delete_result}')
+                    else:
+                        print('No se encontró una coincidencia con la URL proporcionada.')
+
+                    # Subir la nueva imagen a Cloudinary
+                    upload_result = cloudinary.uploader.upload(
+                        request.FILES['image'],
+                    )
+
+                    print('la nueva url ', upload_result['secure_url'])
+                    # Guardar la nueva URL de la imagen en la receta
+                    recipe.image = upload_result['secure_url']  # Guardar la URL segura de Cloudinary
+                else:
+                   recipe.image = recipe_url
+            else:
+                recipe.image = recipe_url
+
+            # Guardar los cambios en la receta
             form.save()
-            messages.success(request, 'Se Ha Editado Con Exito!')
+            messages.success(request, '¡La receta se ha actualizado con éxito!')
             return redirect('ver_receta_propia')
     else:
         form = RecipeForm(instance=recipe)
@@ -149,13 +198,46 @@ def edit_recipe(request, recipe_id):
 
 def delete_recipe(request, recipe_id):
     if not request.user.is_authenticated:
-        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
+        messages.warning(request, 'Necesitas iniciar sesión para realizar esta acción.')
         return redirect('login')
+
+    # Obtener la receta actual
     recipe = get_object_or_404(Recipe, pk=recipe_id)
 
     if request.method == 'POST':
+        # Verificar si la receta tiene una imagen y eliminarla de Cloudinary
+        if recipe.image:
+            load_dotenv()
+
+            # Configuración de Cloudinary
+            cloudinary.config(
+                cloud_name=os.getenv('CLOUD_NAME'),
+                api_key=os.getenv('API_KEY'),
+                api_secret=os.getenv('API_SECRET'),
+                secure=True
+            )
+
+            # Obtener los recursos de Cloudinary
+            result = cloudinary.api.resources()
+
+            # Buscar la imagen en Cloudinary
+            public_id = None
+            for resource in result['resources']:
+                if resource['secure_url'] == recipe.image:
+                    public_id = resource['public_id']
+                    break
+
+            # Si se encontró la imagen, eliminarla
+            if public_id:
+                delete_result = cloudinary.uploader.destroy(public_id)
+                print(f'Imagen eliminada de Cloudinary: {delete_result}')
+            else:
+                print('No se encontró la imagen en Cloudinary.')
+
+        # Eliminar la receta de la base de datos
         recipe.delete()
-        return redirect('ver_receta_propia')  # Redirigir a la lista de recetas después de eliminar
+        messages.success(request, '¡La receta se ha eliminado con éxito!')
+        return redirect('ver_receta_propia')  # Redirigir después de eliminar la receta
 
     return render(request, 'delete_recipe.html', {'recipe': recipe})
 
@@ -199,6 +281,7 @@ def all_recipes(request):
     publication_date = request.GET.get('publication_date')  # Fecha de publicación
 
     recipes = Recipe.objects.all()
+    colections = Collection.objects.filter(user=request.user)
 
     if query:
         recipes = recipes.filter(title__icontains=query)
@@ -231,6 +314,7 @@ def all_recipes(request):
     contexto = {
         'recetas': recipes,
         'cocinas': cuisenes,
+        'colecciones':colections,
     }
     return render(request, 'recetas/ver_recetas.html', contexto)
 
@@ -238,18 +322,29 @@ def create_collection(request):
     if not request.user.is_authenticated:
         messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
         return redirect('login')
+    recetas = Recipe.objects.all()
     if request.method == 'POST':
+        # Obtener la cadena de IDs seleccionados del POST
+        recetas_ids_str = request.POST.get('recipes-selected', '')
+        
+        # Separar la cadena por comas y convertirla en una lista de IDs
+        recetas_ids = recetas_ids_str.split(',')
+        
+        # Filtrar los objetos Recipe usando los IDs obtenidos
+        recetas_objetos = Recipe.objects.filter(id__in=recetas_ids)
         form = CollectionForm(request.POST)
         if form.is_valid():
             collection = form.save(commit=False)
             collection.user = request.user
             collection.save()
+            # Agregar las recetas a la colección
+            collection.recipes.set(recetas_objetos)
+            collection.save()
             messages.success(request, 'Se Ha Creado La Coleccíon Con Exito!')
             return redirect('create_collection') 
     else:
         form = CollectionForm()
-
-    return render(request, 'colecciones/crear_coleccion.html', {'form': form})
+    return render(request, 'colecciones/crear_coleccion.html', {'form': form, 'recetas':recetas})
 
 def add_recipe_to_collections(request, recipe_id):
     if not request.user.is_authenticated:
@@ -286,6 +381,17 @@ def collection_detail(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id, user=request.user)
     recipes = collection.recipes.all()
     return render(request, 'colecciones/detalle_coleccion.html', {'collection': collection, 'recipes': recipes})
+
+def collection_delete(request, collection_id):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Necesitas iniciar sesión para realizar está acción.')
+        return redirect('login')
+    collection = get_object_or_404(Collection, id=collection_id, user=request.user)
+    collection.delete()
+    messages.success(request, 'Coleccion Eliminada Con Exito!')
+    return redirect('user_collections')
+
+    
 
 def edit_profile(request):
     if not request.user.is_authenticated:

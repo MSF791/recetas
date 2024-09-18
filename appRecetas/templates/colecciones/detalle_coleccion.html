@@ -44,8 +44,11 @@
                         <div>
                             Nombre: {{ recipe.title }}
                         </div>
+                        <div class="text-center">
+                            Tiempo Preparacion: {{ recipe.preparation_time }}
+                        </div>
                         <div class="text-end">
-                            Tiempo Preparacion {{ recipe.preparation_time }}
+                            <a href="{% url 'recipe_detail' recipe.id %}" class="btn btn-sm btn-outline-info">Detalles</a>
                         </div>
                     </li>
                 {% endfor %}

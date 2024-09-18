@@ -10,6 +10,11 @@
         .carta{
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+        .card-img-top {
+            object-fit: cover; /* Mantiene la imagen en un tamaño consistente */
+            width: 100%;
+            height: 276px; /* Asegúrate de que todas las imágenes tengan la misma altura */
+        }
     </style>
 </head>
 <body>
@@ -68,7 +73,7 @@
                 <div class="carta col-md-4 mb-4">
                     <div class="card mb-4">
                         {% if receta.image %}
-                        <img src="{{ receta.image }}" class="card-img-top" alt="Imagen de {{ receta.title }}" width="414px" height="276px">
+                        <img src="{{ receta.image }}" class="card-img-top" alt="Imagen de {{ receta.title }}">
                         {% endif %}
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-center">{{ receta.title }}</h5>
@@ -84,14 +89,44 @@
 
                             <!-- Botón de ver detalles -->
                             <div class="mt-auto text-center">
-                                <a href="{% url 'recipe_detail' receta.id %}" class="btn btn-info">Ver Detalles</a>
+                                <a href="{% url 'recipe_detail' receta.id %}" class="btn btn-outline-success">Ver Detalles</a>
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                    Agrega A Tu Colección
+                                </button>
                             </div>
                         </div>
+                    </div>
+            </div>
+            <!-- Modal -->
+                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Tus Colecciones</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="{% url 'add_recipe_to_collections' receta.id %}">
+                                {% csrf_token %}
+                            {% for coleccion in colecciones %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="collections" value="{{ coleccion.id }}" id="coleccion{{coleccion.id}}" required>
+                                <label class="form-check-label" for="flexCheckDefault">
+                                    {{ coleccion.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                            </form>
+                    </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-    </div>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

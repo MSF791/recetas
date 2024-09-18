@@ -18,7 +18,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='recetas_imagenes/', blank=True, null=True)
+    image = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.title

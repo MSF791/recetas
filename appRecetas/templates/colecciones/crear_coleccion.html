@@ -8,22 +8,26 @@
     <style>
         .container {
             max-width: 600px;
-            margin: 0 auto; /* Centra el contenedor */
+            margin: 0 auto;
         }
-    
+
         .formulario {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             background-color: #eaeaea;
             padding: 20px;
-            border-radius: 8px; /* Opcional: agrega bordes redondeados */
+            border-radius: 8px;
         }
-    
+
         .formulario h1 {
             text-align: center;
         }
-    
+
         .formulario button {
-            width: 100%; /* Hace que el botón ocupe el 100% del ancho disponible */
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>    
 </head>
@@ -50,6 +54,27 @@
                     {{ form.name.label_tag }}
                     {{ form.name }}
                 </div>
+                
+                <!-- Campo oculto para las recetas seleccionadas -->
+                <input type="hidden" id="selected-recipes" name="recipes-selected">
+
+                <!-- Checkbox que aparece cuando hay texto en el input -->
+                <div class="mb-3 hidden" id="checkbox-container">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Agregar Recetas?
+                        </label>
+                    </div>                      
+                </div>
+
+                <!-- Botón que abre el modal, inicialmente oculto -->
+                <div class="mt-3 hidden" id="select-recipes-button">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#recipeModal">
+                        Seleccionar Recetas
+                    </button>
+                </div>
+
                 <div class="mt-4">
                     <button type="submit" class="btn btn-outline-success">Crear Colección</button>
                 </div>
@@ -57,6 +82,101 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="recipeModalLabel">Seleccionar Recetas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mt-4">
+                {% for receta in recetas %}
+                    <div class="carta col-md-4 mb-4">
+                        <div class="card mb-4">
+                            {% if receta.image %}
+                            <img src="{{ receta.image }}" class="card-img-top" alt="Imagen de {{ receta.title }}" width="414px" height="276px">
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-center">{{ receta.title }}</h5>
+    
+                                <!-- Puntuación -->
+                                <!-- (Aquí puedes agregar el código para mostrar la puntuación) -->
+    
+                                <!-- Tiempo de preparación -->
+                                <p class="card-text text-center"><strong>Tiempo de Preparación:</strong> {{ receta.preparation_time }} minutos</p>
+    
+                                <!-- Cocina -->
+                                <p class="card-text text-center"><strong>Cocina:</strong> {{ receta.cuisine.name }}</p>
+    
+                                <!-- Botón de ver detalles -->
+                                <div class="mt-auto text-center">
+                                    <a href="{% url 'recipe_detail' receta.id %}" class="btn btn-info">Ver Detalles</a>
+                                    <br>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault" value="{{ receta.id }}" name="recetas">
+                                        <label class="form-check-label" for="flexSwitchCheckDefault">¿Agregar Está Receta?</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Guardar selección</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Mostrar el checkbox cuando se escriba en el input
+            $('input[name="name"]').on('input', function() {
+                if ($(this).val().trim() !== "") {
+                    $('#checkbox-container').removeClass('hidden');
+                } else {
+                    $('#checkbox-container').addClass('hidden');
+                    $('#select-recipes-button').addClass('hidden');  // También ocultar el botón del modal si se borra el texto
+                    $('#flexCheckDefault').prop('checked', false);   // Desmarcar el checkbox
+                }
+            });
+    
+            // Mostrar el botón del modal cuando el checkbox esté marcado
+            $('#flexCheckDefault').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#select-recipes-button').removeClass('hidden');
+                } else {
+                    $('#select-recipes-button').addClass('hidden');
+                }
+            });
+    
+            // Actualizar el campo oculto con las recetas seleccionadas
+            function updateSelectedRecipes() {
+                var selectedRecipes = [];
+                $('input[name="recetas"]:checked').each(function() {
+                    selectedRecipes.push($(this).val());
+                });
+                $('#selected-recipes').val(selectedRecipes);  // Guardar los IDs como una lista
+            }
+    
+            // Escuchar cambios en los checkboxes dentro del modal
+            $('input[name="recetas"]').on('change', function() {
+                updateSelectedRecipes();
+            });
+    
+            // Actualizar el campo oculto al cerrar el modal
+            $('#recipeModal').on('hide.bs.modal', function() {
+                updateSelectedRecipes();
+            });
+        });
+    </script>
+    
 </body>
 </html>
